@@ -4,8 +4,13 @@
 package com.dstresearch.turbine;
 
 
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Collection;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.netflix.turbine.discovery.Instance;
 import com.netflix.turbine.discovery.InstanceDiscovery;
 
@@ -21,14 +26,25 @@ import com.netflix.turbine.discovery.InstanceDiscovery;
  */
 public class K8sInstanceDiscovery implements InstanceDiscovery
 	{
-	private static final Logger	log	= Logger.getLogger( K8sInstanceDiscovery.class );
+	private static final Logger	log	= LoggerFactory.getLogger( K8sInstanceDiscovery.class );
 
 	/* (non-Javadoc)
 	 * @see com.netflix.turbine.discovery.InstanceDiscovery#getInstanceList()
 	 */
 	public Collection< Instance > getInstanceList() throws Exception
 		{
-		// TODO Auto-generated method stub
+		
+		log.debug( "getInstanceList" );
+		
+		Config config = new ConfigBuilder().build();
+		KubernetesClient k8s = new DefaultKubernetesClient(config);
+		
+		log.debug( "API:  " + k8s.getApiVersion() );
+		
+		log.debug( "Master:  " + k8s.getMasterUrl() );
+		
+		log.debug( "pods:  " + k8s.inNamespace( "k8s-dev" ).pods().withName( "certs-*" ).get() );
+
 		return null;
 		}
 	}
