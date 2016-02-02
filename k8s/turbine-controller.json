@@ -1,0 +1,51 @@
+{
+   "kind":"ReplicationController",
+   "apiVersion":"v1",
+   "metadata":{
+      "name":"turbine",
+      "labels":{
+         "name":"turbine",
+         "owner":"mch",
+         "app":"turbine"
+      }
+   },
+   "spec":{
+      "replicas":1,
+      "selector":{
+         "name":"turbine",
+         "app":"turbine"
+      },
+      "template":{
+         "metadata":{
+            "labels":{
+               "name":"turbine",
+               "app":"turbine"
+            }
+         },
+         "spec":{
+            "containers":[
+               {
+                  "name":"turbine",
+                  "image":"registry.dstresearch.com/library/turbine:latest",
+                  "imagePullPolicy": "Always",
+                  "env" : [
+                     {
+                        "name" : "POD_NAMESPACE",
+                        "valueFrom": { "fieldRef": { "fieldPath": "metadata.namespace" } }
+                     }
+                  ],
+                  "ports":[
+                     {
+                        "containerPort":8080,
+                        "protocol":"TCP"
+                     }
+                  ]
+               }
+            ],
+           "imagePullSecrets": [
+               { "name" : "dstresearchkey" }
+            ]
+         }
+      }
+   }
+}
