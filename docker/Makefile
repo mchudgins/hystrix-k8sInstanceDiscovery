@@ -12,6 +12,8 @@ container_deps := Dockerfile
 all: container
 
 container: $(container_deps)
+	- mkdir -p WEB-INF/lib
+	- mkdir -p WEB-INF/classes
 	cp ../target/k8sInstanceDiscovery*.jar WEB-INF/lib
 	cp ../turbine-web.war .
 	jar uvf turbine-web.war WEB-INF/lib/k8sInstanceDiscovery*.jar
