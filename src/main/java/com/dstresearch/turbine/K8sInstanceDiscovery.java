@@ -36,11 +36,11 @@ public class K8sInstanceDiscovery implements InstanceDiscovery
 	public K8sInstanceDiscovery()
 		{
 		namespace = System.getenv( "POD_NAMESPACE" );
-		log.info( "POD_NAMESPACE:  " + namespace );
+//		log.info( "POD_NAMESPACE:  " + namespace );
 		if ( namespace == null || namespace.length() == 0 )
 			{
 			namespace = System.getProperty( "com.dstresearch.turbine.namespace" );
-			log.info( "com.dstresearch.turbine.namespace:  " + namespace );
+//			log.info( "com.dstresearch.turbine.namespace:  " + namespace );
 			}
 		}
 
@@ -50,14 +50,12 @@ public class K8sInstanceDiscovery implements InstanceDiscovery
 	 */
 	public Collection< Instance > getInstanceList() throws Exception
 		{
-		log.info( "getInstanceList" );
 
 		Config config = new ConfigBuilder().build();
 		KubernetesClient k8s = new DefaultKubernetesClient( config );
 
-		log.debug( "API:  " + k8s.getApiVersion() );
-
-		log.debug( "Master:  " + k8s.getMasterUrl() );
+//		log.debug( "API:  " + k8s.getApiVersion() );
+//		log.debug( "Master:  " + k8s.getMasterUrl() );
 		
 		PodList pods = k8s.inNamespace( namespace ).pods().list();
 		Collection< Instance > list = new ArrayList< Instance >( pods.getItems().size() );
@@ -70,17 +68,31 @@ public class K8sInstanceDiscovery implements InstanceDiscovery
 			String genName = pod.getMetadata().getGenerateName();
 			if ( genName != null && ip != null )
 				{
-//				log.debug( "pod:  " + name + ", " + ip + ", "
-//						+ pod.getMetadata().getNamespace() + "-" + genName );
-				log.debug( "pod:  " + name + ", " + ip + ", "
-						+ pod.getMetadata().getNamespace() + "-"
-						+ genName.substring( 0, genName.length() - 1 ) );
-				String cluster = pod.getMetadata().getNamespace() + "-"
-						+ genName.substring( 0, genName.length() - 1 );
+//				log.debug( "pod:  " + name + ", " + ip + ", " + pod.getMetadata().getNamespace() + "-" + genName );
+
+				String podName = genName.substring( 0, genName.length() - 1 );
+				final String podNamespace = pod.getMetadata().getNamespace();
+				
+/*
+ 				log.debug( "pod:  " + name + ", " + ip + ", "
+						+ podNamespace + "-"
+						+ podName );
+ */
+				
+				if ( pod.getMetadata().getLabels().containsKey( "deployment" ) )
+					{
+					final String deployment = pod.getMetadata().getLabels().get( "deployment" );
+					if ( podName.endsWith( deployment ) )
+						podName = podName.substring( 0, podName.length() - ( deployment.length() + 1 ) );
+					}
+				String cluster = podNamespace + "-"
+						+ podName;
+
 				Instance obj = new Instance( ip, cluster, true );
+				
+//				log.debug( "Instance:  " + obj );
 				list.add( obj );
 				}
-//			log.debug( "pod dump:  " + pod );
 			}
 
 		return list;
